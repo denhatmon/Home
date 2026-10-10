@@ -4060,7 +4060,7 @@ function progressDisciple(d,elapsedSeconds){
 function tickCultivation(elapsedSeconds){for(const d of DISCIPLES)progressDisciple(d,elapsedSeconds);}
 let lastCultivationTick=Date.now();setInterval(()=>{checkRecruitmentDay();const now=Date.now();const elapsed=Math.min(300,Math.max(0,(now-lastCultivationTick)/1000));lastCultivationTick=now;if(elapsed<=0)return;tickCultivation(elapsed);saveRecruitmentState();if(document.getElementById('setup-screen').style.display!=='none')renderHub();},5000);
 // Ghi dữ liệu ngay khi tab bị ẩn/đóng, thay vì phụ thuộc hoàn toàn vào chu kỳ tự lưu 5 giây.
-window.addEventListener('pagehide',()=>{try{suspendBattleContextsForHidden();}catch(_e){}flushQueuedRecruitmentSave();saveRecruitmentState();});
+window.addEventListener('pagehide',()=>{if(window.__dntm_skip_unload_save)return;try{suspendBattleContextsForHidden();}catch(_e){}flushQueuedRecruitmentSave();saveRecruitmentState();});
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='hidden'){
     // Luồng combat riêng phía dưới sẽ suspend + lưu context. Giữ save ở đây vì
@@ -7217,7 +7217,7 @@ window.addEventListener('keydown',e=>{
  if(traitModal){traitModal.remove();return;}
 });
 restorePersistedBattles();
-window.addEventListener('beforeunload',()=>{try{saveRecruitmentState();}catch(e){}});
+window.addEventListener('beforeunload',()=>{if(window.__dntm_skip_unload_save)return;try{saveRecruitmentState();}catch(e){}});
 
 </script>
 
@@ -10578,6 +10578,7 @@ div[id^="game-alert-"],div[id^="game-confirm-"]{z-index:100000 !important;}
  const TABLE='player_saves';
  const SAVE_KEY='tacticalArenaRecruitmentV1';
  const BACKUP_KEY='tacticalArenaRecruitmentV1_backup';
+ const OWNER_KEY='dntm_save_owner';
  let client=null, session=null, mode='login', syncReady=false, syncTimer=null, syncBusy=false, lastSyncedAt=0, authInitialized=false, reconciling=false, gameUnlocked=false;
  const $=id=>document.getElementById(id);
  function setMessage(text,type){const el=$('dntm-cloud-message');if(el){el.textContent=text;el.className='dntm-cloud-message'+(type?' '+type:'');}}
@@ -10598,7 +10599,7 @@ div[id^="game-alert-"],div[id^="game-confirm-"]{z-index:100000 !important;}
  function openModal(){const b=$('dntm-cloud-backdrop');if(b)b.classList.add('open');}
  function closeModal(){if(!gameUnlocked)return;const b=$('dntm-cloud-backdrop');if(b)b.classList.remove('open');}
  function setMode(next){mode=next==='signup'?'signup':'login';$('dntm-cloud-tab-login')?.classList.toggle('active',mode==='login');$('dntm-cloud-tab-signup')?.classList.toggle('active',mode==='signup');$('dntm-cloud-password').autocomplete=mode==='signup'?'new-password':'current-password';$('dntm-cloud-submit').textContent=mode==='signup'?'Tạo tài khoản':'Đăng nhập';setMessage('');}
- function toggleSignedIn(isSigned){$('dntm-cloud-auth-view').hidden=!!isSigned;$('dntm-cloud-signed-view').hidden=!isSigned;setAccountButton();}
+ function toggleSignedIn(isSigned){$('dntm-cloud-auth-view').hidden=!!isSigned;$('dntm-cloud-signed-view').hidden=!isSigned;setAccountButton();try{const cb=$('dntm-chat-btn');if(cb)cb.style.display=isSigned?'flex':'none';if(!isSigned)chatUnsubscribe();}catch(_){}}
  async function submitPassword(){
   if(!client){setMessage('Không tải được thư viện Supabase. Hãy kiểm tra kết nối internet rồi tải lại game.','error');return;}
   const email=$('dntm-cloud-email').value.trim(),password=$('dntm-cloud-password').value;
@@ -10622,8 +10623,32 @@ div[id^="game-alert-"],div[id^="game-confirm-"]{z-index:100000 !important;}
   finally{btn.disabled=false;}
  }
  function friendlyError(e){const m=String(e?.message||e||'Lỗi không xác định');if(/Invalid login credentials/i.test(m))return 'Email hoặc mật khẩu chưa đúng.';if(/Email not confirmed/i.test(m))return 'Tài khoản chưa xác nhận email. Hãy mở email xác nhận rồi thử lại.';if(/User already registered/i.test(m))return 'Email này đã có tài khoản. Hãy chuyển sang tab Đăng nhập.';return m;}
-async function writeRemote(save){if(!session?.user?.id||!validSave(save))throw new Error('Không có tài khoản hoặc bản lưu hợp lệ.');try{save.cloudOwnerUid=session.user.id;}catch(_){}const row={user_id:session.user.id,save_data:save,save_revision:Number(save.saveRevision)||0,updated_at:new Date().toISOString()};const {error}=await client.from(TABLE).upsert(row,{onConflict:'user_id'});if(error)throw error;lastSyncedAt=Date.now();showSyncStatus('Đã đồng bộ lúc '+new Date().toLocaleTimeString('vi-VN'));setSignedMessage('Đồng bộ thành công. Bản lưu trên thiết bị vẫn được giữ làm dự phòng.','success');}
+async function writeRemote(save){if(!session?.user?.id||!validSave(save))throw new Error('Không có tài khoản hoặc bản lưu hợp lệ.');try{save.cloudOwnerUid=session.user.id;}catch(_){}const row={user_id:session.user.id,save_data:save,save_revision:Number(save.saveRevision)||0,updated_at:new Date().toISOString()};const {error}=await client.from(TABLE).upsert(row,{onConflict:'user_id'});if(error)throw error;try{localStorage.setItem(OWNER_KEY,session.user.id);}catch(_){}lastSyncedAt=Date.now();showSyncStatus('Đã đồng bộ lúc '+new Date().toLocaleTimeString('vi-VN'));setSignedMessage('Đồng bộ thành công. Bản lưu trên thiết bị vẫn được giữ làm dự phòng.','success');}
  async function readRemote(){const {data,error}=await client.from(TABLE).select('save_data,save_revision,updated_at').eq('user_id',session.user.id).maybeSingle();if(error)throw error;return data&&validSave(data.save_data)?data.save_data:null;}
+ function finishReconcile(){
+  syncReady=true;authInitialized=true;toggleSignedIn(true);
+  $('dntm-cloud-user-email').textContent=getSectLeaderName()+' · '+(session.user.email||'Tài khoản');
+  setSignedMessage('Tài khoản đã kết nối. Tiến trình sẽ tự đồng bộ sau các lần lưu trong game.','success');
+  setGateStatus('Đã xác thực tài khoản và kiểm tra bản lưu. Đang mở game…');
+  unlockGame();
+ }
+ // Hỏi người dùng khi tài khoản chưa có save online mà máy đang có dữ liệu không rõ chủ.
+ function askFreshOrKeep(email,count,onFresh,onKeep){
+  const bd=document.createElement('div');
+  bd.className='trait-modal-backdrop';bd.style.setProperty('z-index','100000','important');
+  bd.innerHTML='<div class="trait-modal attribute-info-modal">'
+   +'<div class="trait-modal-head"><div class="trait-modal-title"><h3>Dữ liệu trên thiết bị</h3></div></div>'
+   +'<div class="trait-desc">Tài khoản <b>'+escapeHtml(email)+'</b> chưa có dữ liệu online.<br><br>Trên thiết bị này đang có tiến trình với <b>'+count+' đệ tử</b>. Bạn muốn làm gì với tiến trình này?</div>'
+   +'<div style="display:flex;flex-direction:column;gap:8px;margin-top:14px">'
+   +'<button type="button" class="eq-btn u-btn-ghostgold" id="dntm-ask-keep">Giữ lại tiến trình này</button>'
+   +'<button type="button" class="eq-btn" id="dntm-ask-fresh" style="border:1px solid rgba(248,113,113,.55);color:#fecaca;background:rgba(127,29,29,.35)">Bỏ đi, bắt đầu mới</button>'
+   +'</div></div>';
+  document.body.appendChild(bd);
+  let done=false;
+  function pick(fn){if(done)return;done=true;try{bd.remove();}catch(_){}fn();}
+  bd.querySelector('#dntm-ask-keep').addEventListener('click',()=>pick(onKeep));
+  bd.querySelector('#dntm-ask-fresh').addEventListener('click',()=>pick(onFresh));
+ }
  async function reconcileCloud(){
   if(!session?.user?.id||!client||reconciling)return;
   reconciling=true;syncReady=false;showSyncStatus('Đang kiểm tra bản lưu online…');
@@ -10640,7 +10665,8 @@ async function writeRemote(save){if(!session?.user?.id||!validSave(save))throw n
     else showSyncStatus('Không tạo được dữ liệu mới.');
    }else if(!remote){
     const chosen=currentLocal||originalLocal;
-    const ownerUid=chosen&&chosen.cloudOwnerUid;
+    let ownerKeyUid=null;try{ownerKeyUid=localStorage.getItem(OWNER_KEY);}catch(_){}
+    const ownerUid=ownerKeyUid||(chosen&&chosen.cloudOwnerUid);
     let pendingSignup=null;try{pendingSignup=localStorage.getItem('dntm_pending_signup');}catch(_){}
     const isNewReg=!!pendingSignup&&pendingSignup===session.user.id;
     // Dữ liệu máy có từ trước cả khi tài khoản được tạo -> chắc chắn không phải của tài khoản này
@@ -10652,17 +10678,33 @@ async function writeRemote(save){if(!session?.user?.id||!validSave(save))throw n
      predatesAccount=createdAt>0&&localTime>0&&(localTime+5*60000<createdAt);
     }catch(_){}
     // Tài khoản mới đăng ký, hoặc dữ liệu trên máy thuộc tài khoản khác -> không "kế thừa", tạo mới hoàn toàn.
-    if(isNewReg||(ownerUid&&ownerUid!==session.user.id)||predatesAccount){
-     try{localStorage.removeItem('dntm_pending_signup');localStorage.removeItem(SAVE_KEY);localStorage.removeItem(BACKUP_KEY);}catch(_){}
+    // Chắc chắn là dữ liệu của tài khoản khác -> xóa lặng lẽ, tạo mới.
+    if((ownerUid&&ownerUid!==session.user.id)||predatesAccount){
+     try{localStorage.removeItem('dntm_pending_signup');localStorage.removeItem(SAVE_KEY);localStorage.removeItem(BACKUP_KEY);localStorage.removeItem(OWNER_KEY);}catch(_){}
      showSyncStatus('Đang tạo dữ liệu mới cho tài khoản…');setGateStatus('Đang tạo dữ liệu mới cho tài khoản…');
+     try{window.__dntm_skip_unload_save=true;}catch(_){}
      location.reload();return;
     }
-    try{if(pendingSignup===session.user.id)localStorage.removeItem('dntm_pending_signup');}catch(_){}
-    if(chosen){await writeRemote(chosen);}
-    else showSyncStatus('Chưa có bản lưu online; bản lưu mới sẽ được tạo khi chơi.');
+    try{localStorage.removeItem('dntm_pending_signup');}catch(_){}
+    const discCount=chosen&&Array.isArray(chosen.disciples)?chosen.disciples.length:0;
+    if(discCount>0){
+     // Không chắc dữ liệu này của ai -> hỏi người dùng, không tự đoán.
+     const emailNow=session.user.email||'này';
+     setGateStatus('Chờ bạn chọn cách xử lý dữ liệu trên thiết bị…');
+     showSyncStatus('Chờ bạn chọn cách xử lý dữ liệu trên thiết bị…');
+     askFreshOrKeep(emailNow,discCount,function(){
+      try{localStorage.setItem('dntm_force_fresh','1');localStorage.removeItem(SAVE_KEY);localStorage.removeItem(BACKUP_KEY);localStorage.removeItem(OWNER_KEY);}catch(_){}
+      try{window.__dntm_skip_unload_save=true;}catch(_){}
+      location.reload();
+     },function(){
+      (async()=>{try{await writeRemote(chosen);}catch(e){showSyncStatus('Không đẩy được dữ liệu máy lên cloud.');}finishReconcile();})();
+     });
+     return;
+    }
+    showSyncStatus('Chưa có bản lưu online; bản lưu mới sẽ được tạo khi chơi.');
    }else if(!originalLocal){
     // New device: preserve its generated starter save separately, then restore the account save.
-    try{const now=localStorage.getItem(SAVE_KEY);if(now)localStorage.setItem('tacticalArenaRecruitmentV1_device_backup_'+Date.now(),now);localStorage.setItem(BACKUP_KEY,JSON.stringify(remote));localStorage.setItem(SAVE_KEY,JSON.stringify(remote));}catch(e){throw new Error('Không thể ghi bản lưu online vào thiết bị: '+e.message);}
+    try{const now=localStorage.getItem(SAVE_KEY);if(now)localStorage.setItem('tacticalArenaRecruitmentV1_device_backup_'+Date.now(),now);localStorage.setItem(BACKUP_KEY,JSON.stringify(remote));localStorage.setItem(SAVE_KEY,JSON.stringify(remote));try{localStorage.setItem(OWNER_KEY,session.user.id);}catch(_){}}catch(e){throw new Error('Không thể ghi bản lưu online vào thiết bị: '+e.message);}
     showSyncStatus('Đang khôi phục tiến trình từ tài khoản…');location.reload();return;
    }else{
     const order=compareSave(remote,originalLocal);
@@ -10670,7 +10712,7 @@ async function writeRemote(save){if(!session?.user?.id||!validSave(save))throw n
      const remoteCount=countDisciples(remote),localCount=countDisciples(originalLocal);
      const useRemote=confirm('Phát hiện bản lưu online mới hơn.\n\nOnline: '+remoteCount+' đệ tử · '+new Date(timeOf(remote)).toLocaleString('vi-VN')+'\nThiết bị: '+localCount+' đệ tử · '+new Date(timeOf(originalLocal)).toLocaleString('vi-VN')+'\n\nNhấn OK để sao lưu bản trên thiết bị rồi khôi phục bản online. Nhấn Hủy để giữ bản trên thiết bị và tải nó lên online.');
      if(useRemote){
-      try{const now=localStorage.getItem(SAVE_KEY);if(now)localStorage.setItem('tacticalArenaRecruitmentV1_device_backup_'+Date.now(),now);localStorage.setItem(BACKUP_KEY,JSON.stringify(remote));localStorage.setItem(SAVE_KEY,JSON.stringify(remote));}catch(e){throw new Error('Không thể khôi phục bản lưu: '+e.message);}
+      try{const now=localStorage.getItem(SAVE_KEY);if(now)localStorage.setItem('tacticalArenaRecruitmentV1_device_backup_'+Date.now(),now);localStorage.setItem(BACKUP_KEY,JSON.stringify(remote));localStorage.setItem(SAVE_KEY,JSON.stringify(remote));try{localStorage.setItem(OWNER_KEY,session.user.id);}catch(_){}}catch(e){throw new Error('Không thể khôi phục bản lưu: '+e.message);}
       showSyncStatus('Đang khôi phục tiến trình online…');location.reload();return;
      }else await writeRemote(currentLocal||originalLocal);
     }else{
@@ -10678,9 +10720,7 @@ async function writeRemote(save){if(!session?.user?.id||!validSave(save))throw n
      await writeRemote(currentLocal||originalLocal);
     }
    }
-   syncReady=true;authInitialized=true;toggleSignedIn(true);$('dntm-cloud-user-email').textContent=getSectLeaderName()+' · '+(session.user.email||'Tài khoản');
-   setSignedMessage('Tài khoản đã kết nối. Tiến trình sẽ tự đồng bộ sau các lần lưu trong game.','success');
-   setGateStatus('Đã xác thực tài khoản và kiểm tra bản lưu. Đang mở game…');unlockGame();
+   finishReconcile();
   }catch(e){syncReady=false;toggleSignedIn(true);$('dntm-cloud-user-email').textContent=session?.user?.email||'Đã đăng nhập';showSyncStatus('Chưa đồng bộ được');setSignedMessage('Không thể đồng bộ: '+friendlyError(e)+'\n\nKiểm tra đã chạy SQL tạo bảng player_saves và bật chính sách RLS chưa. Sau khi sửa lỗi, nhấn Đồng bộ ngay để thử lại.','error');lockGame('Đã đăng nhập nhưng chưa tải/kiểm tra được bản lưu online. Game vẫn khóa để tránh tạo tiến trình sai. Mở Tài khoản và nhấn Đồng bộ ngay sau khi sửa lỗi.');openModal();}
   finally{reconciling=false;}
  }
@@ -10690,9 +10730,10 @@ async function writeRemote(save){if(!session?.user?.id||!validSave(save))throw n
   if(!session?.user?.id){setSignedMessage('Hãy đăng nhập trước khi xóa dữ liệu.','error');return;}
   gameConfirm('Chơi lại từ đầu?<br><br>Toàn bộ tiến trình của tài khoản này trên <b>cloud và thiết bị</b> sẽ bị <b style="color:#f87171">xóa vĩnh viễn</b> và tạo mới hoàn toàn.<br><br>Hành động này không thể hoàn tác!',function(){
    try{localStorage.setItem('dntm_force_fresh','1');}catch(_){}
-   try{localStorage.removeItem(SAVE_KEY);localStorage.removeItem(BACKUP_KEY);}catch(_){}
+   try{localStorage.removeItem(SAVE_KEY);localStorage.removeItem(BACKUP_KEY);localStorage.removeItem(OWNER_KEY);}catch(_){}
    try{closeModal();}catch(_){}
    setGateStatus('Đang tạo dữ liệu mới…');showSyncStatus('Đang tạo dữ liệu mới…');
+   try{window.__dntm_skip_unload_save=true;}catch(_){}
    location.reload();
   });
  }
@@ -10717,7 +10758,71 @@ async function writeRemote(save){if(!session?.user?.id||!validSave(save))throw n
   }
   window.addEventListener('online',()=>{if(session&&syncReady)scheduleSync();});
  }
- window.DNTMCloud={openModal,closeModal,setMode,submitPassword,syncNow,signOut,resetSave};
+ // ===== Chat kênh thế giới =====
+ let chatChannel=null,chatLoaded=false,chatOpen=false;
+ function chatEls(){return{btn:$('dntm-chat-btn'),panel:$('dntm-chat-panel'),list:$('dntm-chat-list'),input:$('dntm-chat-input'),send:$('dntm-chat-send')};}
+ function chatTime(iso){try{const d=new Date(iso);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}catch(_){return '';}}
+ function chatAddMsg(m,prepend){
+  const e=chatEls();if(!e.list)return;
+  const mine=session?.user?.id&&m.user_id===session.user.id;
+  const div=document.createElement('div');
+  div.className='dntm-chat-msg'+(mine?' mine':'');
+  div.innerHTML='<div class="dntm-chat-head"><b>'+escapeHtml(m.display_name||'Vô danh')+'</b><span>'+chatTime(m.created_at)+'</span></div><div class="dntm-chat-body">'+escapeHtml(m.message||'')+'</div>';
+  if(prepend&&e.list.firstChild)e.list.insertBefore(div,e.list.firstChild);
+  else{e.list.appendChild(div);e.list.scrollTop=e.list.scrollHeight;}
+ }
+ async function chatLoadHistory(){
+  if(chatLoaded||!client||!session?.user?.id)return;
+  try{
+   const {data,error}=await client.from('chat_messages').select('id,user_id,display_name,message,created_at').order('created_at',{ascending:false}).limit(50);
+   if(error)throw error;
+   const e=chatEls();if(e.list)e.list.innerHTML='';
+   (data||[]).reverse().forEach(m=>chatAddMsg(m));
+   chatLoaded=true;
+  }catch(err){console.warn('[Chat] Không tải được lịch sử:',err);}
+ }
+ function chatSubscribe(){
+  if(chatChannel||!client||!session?.user?.id)return;
+  try{
+   chatChannel=client.channel('dntm-chat-world')
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'chat_messages'},payload=>{if(payload&&payload.new)chatAddMsg(payload.new);})
+    .subscribe();
+  }catch(err){console.warn('[Chat] Không subscribe được:',err);}
+ }
+ function chatUnsubscribe(){try{if(chatChannel){client.removeChannel(chatChannel);chatChannel=null;}}catch(_){}chatLoaded=false;}
+ function toggleChat(){
+  const e=chatEls();if(!e.panel)return;
+  if(!session?.user?.id){openModal();return;}
+  chatOpen=!chatOpen;
+  e.panel.hidden=!chatOpen;
+  if(e.btn)e.btn.classList.toggle('open',chatOpen);
+  if(chatOpen){chatLoadHistory();chatSubscribe();setTimeout(()=>{if(e.input)e.input.focus();},100);}
+ }
+ async function chatSend(){
+  const e=chatEls();if(!e.input||!session?.user?.id||!client)return;
+  const text=e.input.value.trim().slice(0,200);
+  if(!text)return;
+  e.input.value='';
+  try{
+   const {error}=await client.from('chat_messages').insert({user_id:session.user.id,display_name:String(getSectLeaderName()||'Vô danh').slice(0,24),message:text});
+   if(error)throw error;
+  }catch(err){
+   e.input.value=text;
+   gameAlert('Không gửi được tin nhắn: '+friendlyError(err));
+  }
+ }
+ function chatInitUI(){
+  const e=chatEls();if(!e.btn||e.btn.dataset.init)return;
+  e.btn.dataset.init='1';
+  e.btn.addEventListener('click',toggleChat);
+  const panel=e.panel;
+  panel.querySelector('.dntm-chat-close').addEventListener('click',toggleChat);
+  e.send.addEventListener('click',chatSend);
+  e.input.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&!ev.shiftKey){ev.preventDefault();chatSend();}});
+ }
+ // Khởi tạo UI chat sau khi DOM sẵn sàng (chỉ hiện nút khi đã đăng nhập)
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',chatInitUI,{once:true});else chatInitUI();
+ window.DNTMCloud={openModal,closeModal,setMode,submitPassword,syncNow,signOut,resetSave,toggleChat};
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
@@ -10767,6 +10872,37 @@ function welcomeCta(){welcomeSeen();if(typeof renderHub==='function'){try{render
 <style id="dntm-cloud-reset-v1">
 .dntm-cloud-danger{width:100%;min-height:42px;margin-top:9px;padding:10px 12px;border-radius:10px;font-size:12px;font-weight:900;cursor:pointer;border:1px solid rgba(248,113,113,.5);background:linear-gradient(135deg,rgba(127,29,29,.5),rgba(69,26,3,.5));color:#fecaca;transition:filter .15s}
 .dntm-cloud-danger:hover{filter:brightness(1.2)}
+</style>
+
+
+<!-- Chat kênh thế giới -->
+<button type="button" id="dntm-chat-btn" aria-label="Chat thế giới" style="display:none">💬</button>
+<div id="dntm-chat-panel" hidden>
+ <div class="dntm-chat-head-bar"><b>📢 Kênh Thế Giới</b><button type="button" class="dntm-chat-close" aria-label="Đóng">×</button></div>
+ <div id="dntm-chat-list"></div>
+ <div class="dntm-chat-input-bar"><input id="dntm-chat-input" maxlength="200" placeholder="Nhắn gì đó với các đạo hữu..." autocomplete="off"/><button type="button" id="dntm-chat-send">Gửi</button></div>
+</div>
+
+<style id="dntm-chat-v1">
+#dntm-chat-btn{position:fixed;right:14px;bottom:96px;width:52px;height:52px;border-radius:50%;border:1px solid rgba(251,191,36,.6);background:linear-gradient(135deg,#f59e0b,#b45309);font-size:24px;cursor:pointer;z-index:9000;box-shadow:0 4px 16px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;transition:transform .15s}
+#dntm-chat-btn:hover{transform:scale(1.08)}
+#dntm-chat-btn.open{background:linear-gradient(135deg,#b45309,#78350f)}
+#dntm-chat-panel{position:fixed;right:12px;bottom:158px;width:min(340px,calc(100vw - 24px));height:min(480px,calc(100vh - 220px));min-height:300px;z-index:9500;display:flex;flex-direction:column;border:1px solid rgba(212,175,55,.55);border-radius:16px;background:linear-gradient(165deg,rgba(20,16,8,.98),rgba(8,6,4,.98));box-shadow:0 12px 40px rgba(0,0,0,.6);overflow:hidden}
+#dntm-chat-panel[hidden]{display:none!important}
+.dntm-chat-head-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid rgba(212,175,55,.3);color:#fcd34d;font-size:14px;font-weight:900}
+.dntm-chat-close{width:28px;height:28px;border-radius:50%;border:1px solid rgba(148,163,184,.4);background:transparent;color:#cbd5e1;font-size:16px;cursor:pointer;line-height:1}
+#dntm-chat-list{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.dntm-chat-msg{max-width:88%;padding:7px 10px;border-radius:10px;background:rgba(30,41,59,.7);border:1px solid rgba(100,116,139,.25);align-self:flex-start}
+.dntm-chat-msg.mine{align-self:flex-end;background:rgba(120,53,15,.45);border-color:rgba(251,191,36,.35)}
+.dntm-chat-head{display:flex;justify-content:space-between;gap:8px;font-size:11px;margin-bottom:2px}
+.dntm-chat-head b{color:#fcd34d}
+.dntm-chat-head span{color:#64748b}
+.dntm-chat-msg.mine .dntm-chat-head b{color:#fdba74}
+.dntm-chat-body{font-size:13px;color:#e2e8f0;word-break:break-word;line-height:1.45}
+.dntm-chat-input-bar{display:flex;gap:8px;padding:10px;border-top:1px solid rgba(212,175,55,.3)}
+#dntm-chat-input{flex:1;min-width:0;padding:9px 12px;border-radius:10px;border:1px solid rgba(100,116,139,.4);background:rgba(2,6,23,.7);color:#e2e8f0;font-size:13px;outline:none}
+#dntm-chat-input:focus{border-color:rgba(251,191,36,.6)}
+#dntm-chat-send{padding:9px 16px;border-radius:10px;border:1px solid #f59e0b;background:linear-gradient(135deg,#f59e0b,#b45309);color:#1c1917;font-weight:900;font-size:13px;cursor:pointer;white-space:nowrap}
 </style>
 
 </body>
