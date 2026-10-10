@@ -10680,9 +10680,9 @@ async function writeRemote(save){if(!session?.user?.id||!validSave(save))throw n
     // Tài khoản mới đăng ký, hoặc dữ liệu trên máy thuộc tài khoản khác -> không "kế thừa", tạo mới hoàn toàn.
     // Chắc chắn là dữ liệu của tài khoản khác -> xóa lặng lẽ, tạo mới.
     if((ownerUid&&ownerUid!==session.user.id)||predatesAccount){
+     try{window.__dntm_skip_unload_save=true;}catch(_){}
      try{localStorage.removeItem('dntm_pending_signup');localStorage.removeItem(SAVE_KEY);localStorage.removeItem(BACKUP_KEY);localStorage.removeItem(OWNER_KEY);}catch(_){}
      showSyncStatus('Đang tạo dữ liệu mới cho tài khoản…');setGateStatus('Đang tạo dữ liệu mới cho tài khoản…');
-     try{window.__dntm_skip_unload_save=true;}catch(_){}
      location.reload();return;
     }
     try{localStorage.removeItem('dntm_pending_signup');}catch(_){}
@@ -10693,8 +10693,8 @@ async function writeRemote(save){if(!session?.user?.id||!validSave(save))throw n
      setGateStatus('Chờ bạn chọn cách xử lý dữ liệu trên thiết bị…');
      showSyncStatus('Chờ bạn chọn cách xử lý dữ liệu trên thiết bị…');
      askFreshOrKeep(emailNow,discCount,function(){
-      try{localStorage.setItem('dntm_force_fresh','1');localStorage.removeItem(SAVE_KEY);localStorage.removeItem(BACKUP_KEY);localStorage.removeItem(OWNER_KEY);}catch(_){}
       try{window.__dntm_skip_unload_save=true;}catch(_){}
+      try{localStorage.setItem('dntm_force_fresh','1');localStorage.removeItem(SAVE_KEY);localStorage.removeItem(BACKUP_KEY);localStorage.removeItem(OWNER_KEY);}catch(_){}
       location.reload();
      },function(){
       (async()=>{try{await writeRemote(chosen);}catch(e){showSyncStatus('Không đẩy được dữ liệu máy lên cloud.');}finishReconcile();})();
@@ -10729,11 +10729,11 @@ async function writeRemote(save){if(!session?.user?.id||!validSave(save))throw n
  async function resetSave(){
   if(!session?.user?.id){setSignedMessage('Hãy đăng nhập trước khi xóa dữ liệu.','error');return;}
   gameConfirm('Chơi lại từ đầu?<br><br>Toàn bộ tiến trình của tài khoản này trên <b>cloud và thiết bị</b> sẽ bị <b style="color:#f87171">xóa vĩnh viễn</b> và tạo mới hoàn toàn.<br><br>Hành động này không thể hoàn tác!',function(){
+   try{window.__dntm_skip_unload_save=true;}catch(_){}
    try{localStorage.setItem('dntm_force_fresh','1');}catch(_){}
    try{localStorage.removeItem(SAVE_KEY);localStorage.removeItem(BACKUP_KEY);localStorage.removeItem(OWNER_KEY);}catch(_){}
    try{closeModal();}catch(_){}
    setGateStatus('Đang tạo dữ liệu mới…');showSyncStatus('Đang tạo dữ liệu mới…');
-   try{window.__dntm_skip_unload_save=true;}catch(_){}
    location.reload();
   });
  }
@@ -10754,7 +10754,7 @@ async function writeRemote(save){if(!session?.user?.id||!validSave(save))throw n
   // Hook the existing local-save pipeline; local saves remain primary and online sync is debounced.
   const originalSave=window.saveRecruitmentState;
   if(typeof originalSave==='function'&&!originalSave.__dntmCloudWrapped){
-   const wrapped=function(){const result=originalSave.apply(this,arguments);if(result)scheduleSync();return result;};wrapped.__dntmCloudWrapped=true;window.saveRecruitmentState=wrapped;
+   const wrapped=function(){if(window.__dntm_skip_unload_save)return false;const result=originalSave.apply(this,arguments);if(result)scheduleSync();return result;};wrapped.__dntmCloudWrapped=true;window.saveRecruitmentState=wrapped;
   }
   window.addEventListener('online',()=>{if(session&&syncReady)scheduleSync();});
  }
