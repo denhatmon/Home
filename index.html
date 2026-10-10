@@ -10496,7 +10496,7 @@ div[id^="game-alert-"],div[id^="game-confirm-"]{z-index:100000 !important;}
 .dntm-cloud-close{width:32px;height:32px;border:1px solid #334155;border-radius:9px;background:#0f172a;color:#cbd5e1;font-size:18px;cursor:pointer;flex:none}
 .dntm-cloud-tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px}.dntm-cloud-tab{padding:10px;border:1px solid #334155;border-radius:9px;background:#0f172a;color:#cbd5e1;font-size:12px;font-weight:800;cursor:pointer}.dntm-cloud-tab.active{border-color:#d97706;background:#422006;color:#fde68a}
 .dntm-cloud-field{display:block;margin:11px 0}.dntm-cloud-field span{display:block;margin-bottom:6px;font-size:11px;font-weight:800;color:#cbd5e1}.dntm-cloud-field input{width:100%;height:42px;padding:0 12px;border:1px solid #334155;border-radius:9px;background:#020617;color:#f8fafc;font-size:13px;outline:none}.dntm-cloud-field input:focus{border-color:#f59e0b;box-shadow:0 0 0 3px #f59e0b20}
-.dntm-cloud-primary,.dntm-cloud-google,.dntm-cloud-secondary{width:100%;min-height:42px;margin-top:9px;padding:10px 12px;border-radius:10px;font-size:12px;font-weight:900;cursor:pointer}.dntm-cloud-primary{border:1px solid #f59e0b;background:linear-gradient(135deg,#f59e0b,#b45309);color:#1c1917}.dntm-cloud-google{border:1px solid #475569;background:#172033;color:#f8fafc}.dntm-cloud-secondary{border:1px solid #334155;background:#0f172a;color:#cbd5e1}.dntm-cloud-primary:disabled,.dntm-cloud-google:disabled{opacity:.55;cursor:wait}
+.dntm-cloud-primary,.dntm-cloud-secondary{width:100%;min-height:42px;margin-top:9px;padding:10px 12px;border-radius:10px;font-size:12px;font-weight:900;cursor:pointer}.dntm-cloud-primary{border:1px solid #f59e0b;background:linear-gradient(135deg,#f59e0b,#b45309);color:#1c1917}.dntm-cloud-secondary{border:1px solid #334155;background:#0f172a;color:#cbd5e1}.dntm-cloud-primary:disabled{opacity:.55;cursor:wait}
 .dntm-cloud-message{margin-top:12px;padding:10px 11px;border:1px solid #334155;border-radius:9px;background:#020617;font-size:11px;line-height:1.55;color:#cbd5e1;white-space:pre-wrap;overflow-wrap:anywhere}.dntm-cloud-message.error{border-color:#7f1d1d;color:#fecaca}.dntm-cloud-message.success{border-color:#065f46;color:#a7f3d0}.dntm-cloud-user{padding:12px;border:1px solid #334155;border-radius:11px;background:#020617}.dntm-cloud-user strong{display:block;color:#fde68a;font-size:13px;overflow-wrap:anywhere}.dntm-cloud-user small{display:block;margin-top:4px;color:#94a3b8;font-size:10px;line-height:1.5}.dntm-cloud-foot{margin-top:12px;font-size:10px;line-height:1.55;color:#64748b}
 @media(max-width:520px){.dntm-account-open{padding:7px 9px}.dntm-account-open span{max-width:74px;overflow:hidden;text-overflow:ellipsis}.dntm-cloud-card{padding:16px}}
 </style>
@@ -10517,12 +10517,12 @@ div[id^="game-alert-"],div[id^="game-confirm-"]{z-index:100000 !important;}
 .dntm-cloud-field input{height:46px;padding:0 14px;border-color:#334155;border-radius:11px;background:rgba(2,6,23,.72);font-size:14px;transition:border-color .18s,box-shadow .18s}
 .dntm-cloud-field input::placeholder{color:#64748b}
 .dntm-cloud-field input:focus{border-color:#fbbf24;box-shadow:0 0 0 3px rgba(245,158,11,.13)}
-.dntm-cloud-primary,.dntm-cloud-google,.dntm-cloud-secondary{min-height:45px;margin-top:10px;border-radius:11px;font-size:13px;transition:filter .15s,transform .15s,border-color .15s}
+.dntm-cloud-primary,.dntm-cloud-secondary{min-height:45px;margin-top:10px;border-radius:11px;font-size:13px;transition:filter .15s,transform .15s,border-color .15s}
 .dntm-cloud-primary{border-color:#fbbf24;background:linear-gradient(135deg,#fcd34d 0%,#f59e0b 52%,#b45309 100%);box-shadow:0 7px 18px rgba(180,83,9,.2);color:#1c1917}
-.dntm-cloud-google{border-color:#475569;background:rgba(15,23,42,.85)}
-.dntm-cloud-primary:hover,.dntm-cloud-google:hover,.dntm-cloud-secondary:hover{filter:brightness(1.08);transform:translateY(-1px)}
+
+.dntm-cloud-primary:hover,.dntm-cloud-secondary:hover{filter:brightness(1.08);transform:translateY(-1px)}
 .dntm-cloud-message{margin-top:14px;padding:10px 12px;border-radius:10px;font-size:12px}
-/* Không chiếm chỗ khi chưa có thông báo: bỏ thẻ viền trống dưới nút Google */
+/* Không chiếm chỗ khi chưa có thông báo */
 .dntm-cloud-message:empty{display:none!important;margin:0!important;padding:0!important;border:0!important;min-height:0!important}
 .dntm-cloud-foot{display:none}
 .dntm-cloud-user{padding:14px;border-radius:13px;background:rgba(2,6,23,.55)}
@@ -10536,7 +10536,6 @@ div[id^="game-alert-"],div[id^="game-confirm-"]{z-index:100000 !important;}
    <label class="dntm-cloud-field"><span>Email</span><input id="dntm-cloud-email" type="email" maxlength="254" autocomplete="email" placeholder="email@example.com"></label>
    <label class="dntm-cloud-field"><span>Mật khẩu</span><input id="dntm-cloud-password" type="password" minlength="8" autocomplete="current-password" placeholder="Nhập mật khẩu"></label>
    <button type="button" id="dntm-cloud-submit" class="dntm-cloud-primary" onclick="DNTMCloud.submitPassword()">Đăng nhập</button>
-   <button type="button" id="dntm-cloud-google" class="dntm-cloud-google" onclick="DNTMCloud.googleLogin()"><i class="fa-brands fa-google"></i> Tiếp tục với Google</button>
    <div id="dntm-cloud-message" class="dntm-cloud-message" aria-live="polite"></div>
    
   </div>
@@ -10600,8 +10599,7 @@ div[id^="game-alert-"],div[id^="game-confirm-"]{z-index:100000 !important;}
   finally{btn.disabled=false;}
  }
  function friendlyError(e){const m=String(e?.message||e||'Lỗi không xác định');if(/Invalid login credentials/i.test(m))return 'Email hoặc mật khẩu chưa đúng.';if(/Email not confirmed/i.test(m))return 'Tài khoản chưa xác nhận email. Hãy mở email xác nhận rồi thử lại.';if(/User already registered/i.test(m))return 'Email này đã có tài khoản. Hãy chuyển sang tab Đăng nhập.';return m;}
- async function googleLogin(){if(!client){setMessage('Không tải được thư viện Supabase.','error');return;}try{const {error}=await client.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.href.split('#')[0]}});if(error)throw error;}catch(e){setMessage(friendlyError(e),'error');}}
- async function writeRemote(save){if(!session?.user?.id||!validSave(save))throw new Error('Không có tài khoản hoặc bản lưu hợp lệ.');const row={user_id:session.user.id,save_data:save,save_revision:Number(save.saveRevision)||0,updated_at:new Date().toISOString()};const {error}=await client.from(TABLE).upsert(row,{onConflict:'user_id'});if(error)throw error;lastSyncedAt=Date.now();showSyncStatus('Đã đồng bộ lúc '+new Date().toLocaleTimeString('vi-VN'));setSignedMessage('Đồng bộ thành công. Bản lưu trên thiết bị vẫn được giữ làm dự phòng.','success');}
+async function writeRemote(save){if(!session?.user?.id||!validSave(save))throw new Error('Không có tài khoản hoặc bản lưu hợp lệ.');const row={user_id:session.user.id,save_data:save,save_revision:Number(save.saveRevision)||0,updated_at:new Date().toISOString()};const {error}=await client.from(TABLE).upsert(row,{onConflict:'user_id'});if(error)throw error;lastSyncedAt=Date.now();showSyncStatus('Đã đồng bộ lúc '+new Date().toLocaleTimeString('vi-VN'));setSignedMessage('Đồng bộ thành công. Bản lưu trên thiết bị vẫn được giữ làm dự phòng.','success');}
  async function readRemote(){const {data,error}=await client.from(TABLE).select('save_data,save_revision,updated_at').eq('user_id',session.user.id).maybeSingle();if(error)throw error;return data&&validSave(data.save_data)?data.save_data:null;}
  async function reconcileCloud(){
   if(!session?.user?.id||!client||reconciling)return;
@@ -10633,7 +10631,7 @@ div[id^="game-alert-"],div[id^="game-confirm-"]{z-index:100000 !important;}
      await writeRemote(currentLocal||originalLocal);
     }
    }
-   syncReady=true;authInitialized=true;toggleSignedIn(true);$('dntm-cloud-user-email').textContent=getSectLeaderName()+' · '+(session.user.email||'Tài khoản Google');
+   syncReady=true;authInitialized=true;toggleSignedIn(true);$('dntm-cloud-user-email').textContent=getSectLeaderName()+' · '+(session.user.email||'Tài khoản');
    setSignedMessage('Tài khoản đã kết nối. Tiến trình sẽ tự đồng bộ sau các lần lưu trong game.','success');
    setGateStatus('Đã xác thực tài khoản và kiểm tra bản lưu. Đang mở game…');unlockGame();
   }catch(e){syncReady=false;toggleSignedIn(true);$('dntm-cloud-user-email').textContent=session?.user?.email||'Đã đăng nhập';showSyncStatus('Chưa đồng bộ được');setSignedMessage('Không thể đồng bộ: '+friendlyError(e)+'\n\nKiểm tra đã chạy SQL tạo bảng player_saves và bật chính sách RLS chưa. Sau khi sửa lỗi, nhấn Đồng bộ ngay để thử lại.','error');lockGame('Đã đăng nhập nhưng chưa tải/kiểm tra được bản lưu online. Game vẫn khóa để tránh tạo tiến trình sai. Mở Tài khoản và nhấn Đồng bộ ngay sau khi sửa lỗi.');openModal();}
@@ -10642,7 +10640,7 @@ div[id^="game-alert-"],div[id^="game-confirm-"]{z-index:100000 !important;}
  function scheduleSync(){if(!session?.user?.id||!syncReady||!client)return;if(syncTimer)clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncNow(true),2200);}
  async function syncNow(silent){if(syncBusy||!session?.user?.id||!client){if(!silent)openModal();return;}if(!syncReady){await reconcileCloud();return;}syncBusy=true;try{const save=getCurrentSave();if(!save)throw new Error('Không tìm thấy bản lưu trên thiết bị.');await writeRemote(save);}catch(e){showSyncStatus('Đồng bộ thất bại');setSignedMessage('Lỗi đồng bộ: '+friendlyError(e)+'\n\nNếu chưa thiết lập bảng dữ liệu, hãy chạy file SQL đi kèm trong Supabase SQL Editor.','error');if(!silent)openModal();}finally{syncBusy=false;}}
  async function signOut(){if(!client)return;try{await syncNow(true);}catch(_){}const {error}=await client.auth.signOut();if(error)setSignedMessage(friendlyError(error),'error');}
- async function onAuthChanged(nextSession){const previousId=session?.user?.id;session=nextSession;setAccountButton();if(session){lockGame('Đã nhận tài khoản. Đang xác minh và tải tiến trình online…');toggleSignedIn(true);$('dntm-cloud-user-email').textContent=getSectLeaderName()+' · '+(session.user.email||'Tài khoản Google');if(!authInitialized||previousId!==session.user.id)await reconcileCloud();}else{syncReady=false;authInitialized=false;toggleSignedIn(false);lockGame('Vui lòng đăng nhập hoặc tạo tài khoản. Game chỉ tải tiến trình sau khi xác thực thành công.');openModal();}}
+ async function onAuthChanged(nextSession){const previousId=session?.user?.id;session=nextSession;setAccountButton();if(session){lockGame('Đã nhận tài khoản. Đang xác minh và tải tiến trình online…');toggleSignedIn(true);$('dntm-cloud-user-email').textContent=getSectLeaderName()+' · '+(session.user.email||'Tài khoản');if(!authInitialized||previousId!==session.user.id)await reconcileCloud();}else{syncReady=false;authInitialized=false;toggleSignedIn(false);lockGame('Vui lòng đăng nhập hoặc tạo tài khoản. Game chỉ tải tiến trình sau khi xác thực thành công.');openModal();}}
  function init(){
   lockGame('Đang kiểm tra phiên đăng nhập…');
   const backdrop=$('dntm-cloud-backdrop');backdrop?.addEventListener('click',e=>{if(e.target===backdrop)closeModal();});
@@ -10657,7 +10655,7 @@ div[id^="game-alert-"],div[id^="game-confirm-"]{z-index:100000 !important;}
   }
   window.addEventListener('online',()=>{if(session&&syncReady)scheduleSync();});
  }
- window.DNTMCloud={openModal,closeModal,setMode,submitPassword,googleLogin,syncNow,signOut};
+ window.DNTMCloud={openModal,closeModal,setMode,submitPassword,syncNow,signOut};
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
