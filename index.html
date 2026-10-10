@@ -10533,8 +10533,14 @@ function welcomeCta(){welcomeSeen();if(typeof renderHub==='function'){try{render
 .dntm-auth2-card button.submit:disabled{opacity:.5}
 .dntm-auth2-msg{min-height:20px;margin-top:10px;text-align:center;font-size:13px;color:#f87171}
 .dntm-auth2-msg.ok{color:#4ade80}
-.dntm-auth2-userbar{position:fixed;top:64px;right:10px;z-index:9000;display:flex;gap:8px;align-items:center;background:rgba(2,6,23,.85);padding:6px 8px;border-radius:20px;border:1px solid rgba(212,175,55,.3)}
+.dntm-auth2-userbar{position:fixed;top:64px;right:10px;z-index:9000;display:flex;gap:6px;align-items:center;background:rgba(2,6,23,.85);padding:4px 6px;border-radius:16px;border:1px solid rgba(212,175,55,.3);max-width:calc(100vw - 20px)}
 .dntm-auth2-userbar[hidden]{display:none!important}
+#dntm-auth2-email-label{color:#fcd34d;font-size:12px;font-weight:700;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;padding:6px 12px;border-radius:16px;border:1px solid rgba(212,175,55,.5);background:rgba(20,16,8,.9);user-select:none}
+#dntm-auth2-email-label:hover{border-color:#f59e0b}
+#dntm-auth2-dropdown{position:fixed;z-index:9500;display:none;flex-direction:column;min-width:130px;border:1px solid rgba(212,175,55,.5);border-radius:12px;background:rgba(10,8,4,.98);box-shadow:0 8px 24px rgba(0,0,0,.5);overflow:hidden}
+#dntm-auth2-dropdown.open{display:flex}
+#dntm-auth2-logout{padding:10px 14px;border:none;background:transparent;color:#fca5a5;font-size:13px;font-weight:700;cursor:pointer;text-align:left}
+#dntm-auth2-logout:hover{background:rgba(127,29,29,.4)}
 .dntm-auth2-userbar button{padding:7px 14px;border-radius:20px;border:1px solid rgba(212,175,55,.5);background:rgba(20,16,8,.9);color:#fcd34d;font-size:12px;font-weight:700;cursor:pointer}
 </style>
 
@@ -10554,7 +10560,9 @@ function welcomeCta(){welcomeSeen();if(typeof renderHub==='function'){try{render
  </div>
 </div>
 <div class="dntm-auth2-userbar" id="dntm-auth2-userbar" hidden>
- <span id="dntm-auth2-email-label" style="color:#94a3b8;font-size:12px"></span>
+ <span id="dntm-auth2-email-label" title="Bấm để xem tùy chọn"></span>
+</div>
+<div id="dntm-auth2-dropdown">
  <button type="button" id="dntm-auth2-logout">Đăng xuất</button>
 </div>
 
@@ -10706,13 +10714,25 @@ function welcomeCta(){welcomeSeen();if(typeof renderHub==='function'){try{render
   $('dntm-auth2-submit').textContent=(mode==='login')?'Đăng nhập':'Tạo tài khoản';
   msg('');
  }
+ function toggleAuthDropdown(){
+  var dd=$('dntm-auth2-dropdown'), label=$('dntm-auth2-email-label');
+  if(!dd||!label) return;
+  if(dd.classList.contains('open')){ dd.classList.remove('open'); return; }
+  var r=label.getBoundingClientRect();
+  dd.style.top=(r.bottom+6)+'px';
+  dd.style.right=Math.max(8,window.innerWidth-r.right)+'px';
+  dd.classList.add('open');
+ }
+ function hideAuthDropdown(){ var dd=$('dntm-auth2-dropdown'); if(dd) dd.classList.remove('open'); }
  function init(){
   $('dntm-auth2-tab-login').addEventListener('click',function(){ setMode('login'); });
   $('dntm-auth2-tab-signup').addEventListener('click',function(){ setMode('signup'); });
   $('dntm-auth2-submit').addEventListener('click',doSubmit);
   $('dntm-auth2-email').addEventListener('keydown',function(e){ if(e.key==='Enter') doSubmit(); });
   $('dntm-auth2-pass').addEventListener('keydown',function(e){ if(e.key==='Enter') doSubmit(); });
-  $('dntm-auth2-logout').addEventListener('click',doLogout);
+  $('dntm-auth2-logout').addEventListener('click',function(){ hideAuthDropdown(); doLogout(); });
+  $('dntm-auth2-email-label').addEventListener('click',function(e){ e.stopPropagation(); toggleAuthDropdown(); });
+  document.addEventListener('click',function(){ hideAuthDropdown(); });
   if(!window.supabase||!window.supabase.createClient){ msg('Không tải được thư viện đăng nhập. Kiểm tra mạng rồi tải lại trang.'); return; }
   try{ client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY); }
   catch(e){ msg('Không khởi tạo được: '+e.message); return; }
