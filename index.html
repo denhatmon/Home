@@ -1567,13 +1567,14 @@ img:not([data-no-glow]):hover{filter:drop-shadow(0 0 5px rgba(56,189,248,.28)) s
 
 </head>
 <body>
+<span id="dntm-auth2-email-label" title="Bấm để xem tùy chọn" style="display:none"></span>
 <div class="app-shell" id="app-shell">
 <header class="app-header">
   <div class="header-title-row">
     <div class="header-icon"><i class="fa-solid fa-fire-flame-curved"></i></div>
     <h1 class="header-title">ĐỆ NHẤT TÔNG MÔN</h1>
   </div>
-  <div class="header-res"><span id="dntm-auth2-email-label" title="Bấm để xem tùy chọn" style="display:none"></span>
+  <div class="header-res">
     <button type="button" class="res-contribution" title="Tổng điểm cống hiến"><i class="fa-solid fa-medal"></i> <b id="resource-contribution">0</b></button>
   </div>
 </header>
@@ -10536,7 +10537,8 @@ function welcomeCta(){welcomeSeen();if(typeof renderHub==='function'){try{render
 .dntm-auth2-msg.ok{color:#4ade80}
 
 
-#dntm-auth2-email-label{color:#78716c;font-size:11px;font-weight:500;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;padding:4px 6px;user-select:none;background:none;border:none;display:inline-block;vertical-align:middle}
+body.dntm-email-visible .app-header{margin-top:22px}
+#dntm-auth2-email-label{position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:9600;color:#78716c;font-size:10px;font-weight:500;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;padding:3px 8px;user-select:none;background:rgba(2,6,23,.8);border:none;border-radius:0 0 8px 8px}
 #dntm-auth2-email-label:hover{color:#a8a29e}
 #dntm-auth2-dropdown{position:fixed;z-index:9500;display:none;flex-direction:column;min-width:130px;border:1px solid rgba(212,175,55,.5);border-radius:12px;background:rgba(10,8,4,.98);box-shadow:0 8px 24px rgba(0,0,0,.5);overflow:hidden}
 #dntm-auth2-dropdown.open{display:flex}
@@ -10630,7 +10632,7 @@ function welcomeCta(){welcomeSeen();if(typeof renderHub==='function'){try{render
   if(alreadyReloaded){
    try{ sessionStorage.removeItem('dntm_auth2_reloaded'); }catch(_){}
    $('dntm-auth2-gate').hidden=true;
-   var _lbl2=$('dntm-auth2-email-label'); if(_lbl2) _lbl2.style.display='inline-block';
+   var _lbl2=$('dntm-auth2-email-label'); if(_lbl2){ _lbl2.style.display='inline-block'; try{document.body.classList.add('dntm-email-visible');}catch(_){} }
    msg('',true);
    return;
   }
@@ -10641,7 +10643,7 @@ function welcomeCta(){welcomeSeen();if(typeof renderHub==='function'){try{render
    return;
   }
   $('dntm-auth2-gate').hidden=true;
-  var _lbl=$('dntm-auth2-email-label'); if(_lbl) _lbl.style.display='inline-block';
+  var _lbl=$('dntm-auth2-email-label'); if(_lbl){ _lbl.style.display='inline-block'; try{document.body.classList.add('dntm-email-visible');}catch(_){} }
   msg('',true);
  }
  function scheduleUpload(){
@@ -10990,7 +10992,7 @@ window.TOWER_MAX_DAILY=TOWER_MAX_DAILY;
 .tower-btn-confirm{border:none;background:linear-gradient(135deg,#f59e0b,#b45309);color:#1c1917}
 .tower-btn-cancel{border:1px solid rgba(100,116,139,.4);background:transparent;color:#94a3b8}
 </style>
-<div id="tower-tab-panel" class="hub-tab-panel" hidden>
+<div id="tower-tab-panel" class="tab-panel" role="tabpanel">
  <div id="tower-happy-banner"></div>
  <div class="tower-floors" id="tower-floors"></div>
 </div>
