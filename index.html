@@ -10533,7 +10533,7 @@ function welcomeCta(){welcomeSeen();if(typeof renderHub==='function'){try{render
 .dntm-auth2-card button.submit:disabled{opacity:.5}
 .dntm-auth2-msg{min-height:20px;margin-top:10px;text-align:center;font-size:13px;color:#f87171}
 .dntm-auth2-msg.ok{color:#4ade80}
-.dntm-auth2-userbar{position:fixed;top:10px;right:10px;z-index:9000;display:flex;gap:8px;align-items:center}
+.dntm-auth2-userbar{position:fixed;top:64px;right:10px;z-index:9000;display:flex;gap:8px;align-items:center;background:rgba(2,6,23,.85);padding:6px 8px;border-radius:20px;border:1px solid rgba(212,175,55,.3)}
 .dntm-auth2-userbar[hidden]{display:none!important}
 .dntm-auth2-userbar button{padding:7px 14px;border-radius:20px;border:1px solid rgba(212,175,55,.5);background:rgba(20,16,8,.9);color:#fcd34d;font-size:12px;font-weight:700;cursor:pointer}
 </style>
@@ -10604,15 +10604,28 @@ function welcomeCta(){welcomeSeen();if(typeof renderHub==='function'){try{render
   if(local&&remote){ winner=(lr>=rr)?local:remote; localIsNewer=(lr>rr); }
   else if(local){ winner=local; localIsNewer=true; }
   else if(remote){ winner=remote; }
+  var gameKeyChanged=false;
   if(winner){
    try{
-    localStorage.setItem(GAME_KEY,JSON.stringify(winner));
+    var winnerStr=JSON.stringify(winner);
+    if(localStorage.getItem(GAME_KEY)!==winnerStr){ localStorage.setItem(GAME_KEY,winnerStr); gameKeyChanged=true; }
     writeNS(id,winner);
-   }catch(e){ console.warn('[Auth2] Khong ghi local:',e); }
-   if(localIsNewer){ try{ await writeCloud(id,winner); }catch(e){ console.warn('[Auth2] Khong day local len cloud:',e); } }
+   }catch(e){ console.warn('[Auth2] Không ghi local:',e); }
+   if(localIsNewer){ try{ await writeCloud(id,winner); }catch(e){ console.warn('[Auth2] Không đẩy local lên cloud:',e); } }
   }else{
-   try{ localStorage.removeItem(GAME_KEY); localStorage.removeItem(GAME_BACKUP); }catch(_){}
+   try{
+    if(localStorage.getItem(GAME_KEY)){ gameKeyChanged=true; }
+    localStorage.removeItem(GAME_KEY); localStorage.removeItem(GAME_BACKUP);
+   }catch(_){}
   }
+  var alreadyReloaded=false;
+  try{ alreadyReloaded=sessionStorage.getItem('dntm_auth2_reloaded')===id; }catch(_){}
+  if(gameKeyChanged&&!alreadyReloaded){
+   try{ sessionStorage.setItem('dntm_auth2_reloaded',id); }catch(_){}
+   location.reload();
+   return;
+  }
+  try{ sessionStorage.removeItem('dntm_auth2_reloaded'); }catch(_){}
   $('dntm-auth2-gate').hidden=true;
   $('dntm-auth2-userbar').hidden=false;
   msg('',true);
