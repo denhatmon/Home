@@ -10564,6 +10564,7 @@ div[id^="game-alert-"],div[id^="game-confirm-"]{z-index:100000 !important;}
    <div class="dntm-cloud-user"><strong id="dntm-cloud-user-email"></strong><small id="dntm-cloud-sync-status">Đang kiểm tra bản lưu…</small></div>
    <button type="button" class="dntm-cloud-primary" onclick="DNTMCloud.syncNow()"><i class="fa-solid fa-cloud-arrow-up"></i> Đồng bộ ngay</button>
    <button type="button" class="dntm-cloud-secondary" onclick="DNTMCloud.signOut()">Đăng xuất</button>
+   <button type="button" class="dntm-cloud-danger" onclick="DNTMCloud.resetSave()">Chơi lại từ đầu</button>
    <div id="dntm-cloud-signed-message" class="dntm-cloud-message" aria-live="polite">Tiến trình được lưu trên thiết bị và đồng bộ online khi có kết nối.</div>
   </div>
  </section>
@@ -10631,13 +10632,27 @@ async function writeRemote(save){if(!session?.user?.id||!validSave(save))throw n
    // Use the snapshot captured before game startup writes a fresh save.
    const originalLocal=getPrebootSave();
    const currentLocal=getCurrentSave();
-   if(!remote){
+   let forceFresh=false;try{forceFresh=localStorage.getItem('dntm_force_fresh')==='1';if(forceFresh)localStorage.removeItem('dntm_force_fresh');}catch(_){}
+   if(forceFresh){
+    // Nút "Chơi lại từ đầu": bản local mới tạo là chuẩn, ghi đè cloud rồi mở game.
+    const fresh=currentLocal||originalLocal;
+    if(fresh){await writeRemote(fresh);showSyncStatus('Đã tạo dữ liệu mới.');}
+    else showSyncStatus('Không tạo được dữ liệu mới.');
+   }else if(!remote){
     const chosen=currentLocal||originalLocal;
     const ownerUid=chosen&&chosen.cloudOwnerUid;
     let pendingSignup=null;try{pendingSignup=localStorage.getItem('dntm_pending_signup');}catch(_){}
     const isNewReg=!!pendingSignup&&pendingSignup===session.user.id;
+    // Dữ liệu máy có từ trước cả khi tài khoản được tạo -> chắc chắn không phải của tài khoản này
+    // (bắt cả trường hợp tạo tài khoản từ dashboard, không qua game nên không có cờ signup).
+    let predatesAccount=false;
+    try{
+     const createdAt=Date.parse(session.user.created_at||'')||0;
+     const localTime=Number(originalLocal&&originalLocal.savedAt)||0;
+     predatesAccount=createdAt>0&&localTime>0&&(localTime+5*60000<createdAt);
+    }catch(_){}
     // Tài khoản mới đăng ký, hoặc dữ liệu trên máy thuộc tài khoản khác -> không "kế thừa", tạo mới hoàn toàn.
-    if(isNewReg||(ownerUid&&ownerUid!==session.user.id)){
+    if(isNewReg||(ownerUid&&ownerUid!==session.user.id)||predatesAccount){
      try{localStorage.removeItem('dntm_pending_signup');localStorage.removeItem(SAVE_KEY);localStorage.removeItem(BACKUP_KEY);}catch(_){}
      showSyncStatus('Đang tạo dữ liệu mới cho tài khoản…');setGateStatus('Đang tạo dữ liệu mới cho tài khoản…');
      location.reload();return;
@@ -10671,6 +10686,16 @@ async function writeRemote(save){if(!session?.user?.id||!validSave(save))throw n
  }
  function scheduleSync(){if(!session?.user?.id||!syncReady||!client)return;if(syncTimer)clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncNow(true),2200);}
  async function syncNow(silent){if(syncBusy||!session?.user?.id||!client){if(!silent)openModal();return;}if(!syncReady){await reconcileCloud();return;}syncBusy=true;try{const save=getCurrentSave();if(!save)throw new Error('Không tìm thấy bản lưu trên thiết bị.');await writeRemote(save);}catch(e){showSyncStatus('Đồng bộ thất bại');setSignedMessage('Lỗi đồng bộ: '+friendlyError(e)+'\n\nNếu chưa thiết lập bảng dữ liệu, hãy chạy file SQL đi kèm trong Supabase SQL Editor.','error');if(!silent)openModal();}finally{syncBusy=false;}}
+ async function resetSave(){
+  if(!session?.user?.id){setSignedMessage('Hãy đăng nhập trước khi xóa dữ liệu.','error');return;}
+  gameConfirm('Chơi lại từ đầu?<br><br>Toàn bộ tiến trình của tài khoản này trên <b>cloud và thiết bị</b> sẽ bị <b style="color:#f87171">xóa vĩnh viễn</b> và tạo mới hoàn toàn.<br><br>Hành động này không thể hoàn tác!',function(){
+   try{localStorage.setItem('dntm_force_fresh','1');}catch(_){}
+   try{localStorage.removeItem(SAVE_KEY);localStorage.removeItem(BACKUP_KEY);}catch(_){}
+   try{closeModal();}catch(_){}
+   setGateStatus('Đang tạo dữ liệu mới…');showSyncStatus('Đang tạo dữ liệu mới…');
+   location.reload();
+  });
+ }
  async function signOut(){if(!client)return;
   // Chỉ đẩy nốt bản lưu hiện tại, KHÔNG chạy reconcile (reconcile có thể reload/kẹt khiến signOut không bao giờ chạy).
   try{if(session?.user?.id&&!syncBusy){const _sv=getCurrentSave();if(_sv){syncBusy=true;try{await writeRemote(_sv);}catch(_){}syncBusy=false;}}}catch(_){}
@@ -10692,7 +10717,7 @@ async function writeRemote(save){if(!session?.user?.id||!validSave(save))throw n
   }
   window.addEventListener('online',()=>{if(session&&syncReady)scheduleSync();});
  }
- window.DNTMCloud={openModal,closeModal,setMode,submitPassword,syncNow,signOut};
+ window.DNTMCloud={openModal,closeModal,setMode,submitPassword,syncNow,signOut,resetSave};
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
@@ -10737,6 +10762,11 @@ function welcomeCta(){welcomeSeen();if(typeof renderHub==='function'){try{render
   width:100%!important;height:100%!important;object-fit:cover;display:block;
   transform:scale(1.18);
 }
+</style>
+
+<style id="dntm-cloud-reset-v1">
+.dntm-cloud-danger{width:100%;min-height:42px;margin-top:9px;padding:10px 12px;border-radius:10px;font-size:12px;font-weight:900;cursor:pointer;border:1px solid rgba(248,113,113,.5);background:linear-gradient(135deg,rgba(127,29,29,.5),rgba(69,26,3,.5));color:#fecaca;transition:filter .15s}
+.dntm-cloud-danger:hover{filter:brightness(1.2)}
 </style>
 
 </body>
