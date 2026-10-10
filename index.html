@@ -10620,12 +10620,19 @@ function welcomeCta(){welcomeSeen();if(typeof renderHub==='function'){try{render
   }
   var alreadyReloaded=false;
   try{ alreadyReloaded=sessionStorage.getItem('dntm_auth2_reloaded')===id; }catch(_){}
-  if(gameKeyChanged&&!alreadyReloaded){
+  if(alreadyReloaded){
+   try{ sessionStorage.removeItem('dntm_auth2_reloaded'); }catch(_){}
+   $('dntm-auth2-gate').hidden=true;
+   $('dntm-auth2-userbar').hidden=false;
+   msg('',true);
+   return;
+  }
+  if(gameKeyChanged){
+   syncFreeze=true;
    try{ sessionStorage.setItem('dntm_auth2_reloaded',id); }catch(_){}
    location.reload();
    return;
   }
-  try{ sessionStorage.removeItem('dntm_auth2_reloaded'); }catch(_){}
   $('dntm-auth2-gate').hidden=true;
   $('dntm-auth2-userbar').hidden=false;
   msg('',true);
@@ -10646,10 +10653,12 @@ function welcomeCta(){welcomeSeen();if(typeof renderHub==='function'){try{render
    writeNS(uid,save);
   }catch(e){ console.warn('[Auth2] Upload that bai:',e); }
  }
+ var syncFreeze=false;
  function hookSave(){
   var orig=window.saveRecruitmentState;
   if(typeof orig!=='function'||orig.__auth2) return;
   var wrapped=function(){
+   if(syncFreeze) return false;
    var r=orig.apply(this,arguments);
    if(r&&uid){
     try{ var raw=localStorage.getItem(GAME_KEY); if(raw) localStorage.setItem(nsKey(uid),raw); }catch(_){}
