@@ -1584,7 +1584,7 @@ img:not([data-no-glow]):hover{filter:drop-shadow(0 0 5px rgba(56,189,248,.28)) s
     <button id="tab-dungeon-btn" class="hub-tab" role="tab" aria-selected="false" onclick="switchHubTab('dungeon')"><i class="fa-solid fa-dungeon"></i><span>Bí Cảnh</span><em class="hub-tab-badge" id="badge-dungeon" hidden>0</em></button>
     <button id="tab-inventory-btn" class="hub-tab" role="tab" aria-selected="false" onclick="switchHubTab('inventory')"><i class="fa-solid fa-box-open"></i><span>Kho Đồ</span></button>
     <button id="tab-crafting-btn" class="hub-tab" role="tab" aria-selected="false" onclick="switchHubTab('crafting')"><i class="fa-solid fa-hammer"></i><span>Chế Tạo</span></button>
-    <button id="tab-shop-btn" class="hub-tab" role="tab" aria-selected="false" onclick="switchHubTab('shop')"><i class="fa-solid fa-store"></i><span>Shop</span></button>
+    <button id="tab-shop-btn" class="hub-tab" role="tab" aria-selected="false" onclick="switchHubTab('shop')"><i class="fa-solid fa-store"></i><span>Shop</span></button><button id="tab-tower-btn" class="hub-tab" role="tab" aria-selected="false" onclick="switchHubTab('tower')"><i class="fa-solid fa-chess-rook"></i><span>Tháp</span></button>
   </nav>
 
 <main class="app-main" id="setup-screen">
@@ -3314,11 +3314,11 @@ function renderInventory(){const list=document.getElementById('inventory-item-li
 function openInjuryItemPicker(){const count=Math.max(0,Number(sectInventory?.injuryRecoveryPill)||0);if(count<=0){alert('Kho không còn Hồi Thương Đan.');return;}const list=document.getElementById('injury-item-picker-list');const modal=document.getElementById('injury-item-picker-modal');const injured=DISCIPLES.filter(d=>d.status==='injured'||currentHpOf(d)<=0);if(!injured.length){if(list)list.innerHTML='<div class="hub-note">Hiện không có đệ tử nào đang trọng thương.</div>';if(modal)modal.style.display='flex';return;}if(list)list.innerHTML=injured.map(d=>{const max=Math.max(1,discipleStats(d).hp);const hp=Math.max(0,currentHpOf(d));return `<div class="injury-picker-row"><div class="injury-picker-main"><b>${d.name}</b><div class="injury-picker-hp">HP ${hp.toLocaleString('vi-VN')} / ${max.toLocaleString('vi-VN')} · Trọng thương</div></div><button type="button" class="injury-picker-use" onclick="useInjuryRecoveryItem('${d.id}');closeInjuryItemPicker()">Dùng</button></div>`;}).join('');if(modal)modal.style.display='flex';}
 function closeInjuryItemPicker(){const modal=document.getElementById('injury-item-picker-modal');if(modal)modal.style.display='none';}
 function switchHubTab(tab){
- const tabs=['sect','recruitment','dungeon','inventory','crafting','shop'];
+ const tabs=['sect','recruitment','dungeon','inventory','crafting','shop','tower'];
  if(!tabs.includes(tab))tab='sect';
  tabs.forEach(key=>{const panel=document.getElementById(`${key}-tab-panel`),btn=document.getElementById(`tab-${key}-btn`),active=tab===key;if(panel){panel.classList.toggle('active',active);panel.setAttribute('aria-hidden',String(!active));}if(btn){btn.classList.toggle('active',active);btn.setAttribute('aria-selected',String(active));if(active&&typeof btn.scrollIntoView==='function')btn.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'});}});
  if(tab==='recruitment'){renderRecruitment();renderRefreshControl();}
- if(tab==='inventory'){renderInventory();}if(tab==='crafting'){if(typeof renderCrafting==='function')renderCrafting();}if(tab==='shop'){const a=document.getElementById('shop-contribution');if(a)a.textContent=sectContributionCurrency().toLocaleString('vi-VN');if(typeof renderShopEquipment==='function')renderShopEquipment();}const pillEl=document.getElementById('shop-injury-pill-count');if(pillEl)pillEl.textContent=Math.max(0,Number(sectInventory?.injuryRecoveryPill)||0);
+ if(tab==='inventory'){renderInventory();}if(tab==='crafting'){if(typeof renderCrafting==='function')renderCrafting();}if(tab==='shop'){const a=document.getElementById('shop-contribution');if(a)a.textContent=sectContributionCurrency().toLocaleString('vi-VN');if(typeof renderShopEquipment==='function')renderShopEquipment();}const pillEl=document.getElementById('shop-injury-pill-count');if(pillEl)pillEl.textContent=Math.max(0,Number(sectInventory?.injuryRecoveryPill)||0);if(tab==='tower'&&typeof renderTower==='function'){renderTower();}
 }
 function showHubShell(){
  const shell=document.getElementById('app-shell');
@@ -4005,7 +4005,8 @@ function progressDisciple(d,elapsedSeconds){
  if(d.status==='injured'&&typeof removeDiscipleFromAllDungeonParties==='function'){
   try{removeDiscipleFromAllDungeonParties(d.id);}catch(_e){}
  }
- if(d.status==='training')applyCultivationForElapsed(d,elapsedSeconds);
+ if(d.status==='tower'&&d.towerSession)applyTowerCultivation(d,elapsedSeconds);
+  else if(d.status==='training')applyCultivationForElapsed(d,elapsedSeconds);
  const injured=d.status==='injured';
  const rate=recoveryPerMinute(d)*(injured?0.5:1);
  d._hpRemainder=(Number(d._hpRemainder)||0)+rate*elapsedSeconds/60;
@@ -10533,10 +10534,10 @@ function welcomeCta(){welcomeSeen();if(typeof renderHub==='function'){try{render
 .dntm-auth2-card button.submit:disabled{opacity:.5}
 .dntm-auth2-msg{min-height:20px;margin-top:10px;text-align:center;font-size:13px;color:#f87171}
 .dntm-auth2-msg.ok{color:#4ade80}
-.dntm-auth2-userbar{position:fixed;top:64px;right:10px;z-index:9000;display:flex;gap:6px;align-items:center;background:rgba(2,6,23,.85);padding:4px 6px;border-radius:16px;border:1px solid rgba(212,175,55,.3);max-width:calc(100vw - 20px)}
+.dntm-auth2-userbar{position:fixed;top:2px;right:8px;z-index:9600;display:flex;align-items:center;max-width:calc(100vw - 16px)}
 .dntm-auth2-userbar[hidden]{display:none!important}
-#dntm-auth2-email-label{color:#fcd34d;font-size:12px;font-weight:700;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;padding:6px 12px;border-radius:16px;border:1px solid rgba(212,175,55,.5);background:rgba(20,16,8,.9);user-select:none}
-#dntm-auth2-email-label:hover{border-color:#f59e0b}
+#dntm-auth2-email-label{color:#78716c;font-size:11px;font-weight:500;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;padding:4px 6px;user-select:none;background:none;border:none}
+#dntm-auth2-email-label:hover{color:#a8a29e}
 #dntm-auth2-dropdown{position:fixed;z-index:9500;display:none;flex-direction:column;min-width:130px;border:1px solid rgba(212,175,55,.5);border-radius:12px;background:rgba(10,8,4,.98);box-shadow:0 8px 24px rgba(0,0,0,.5);overflow:hidden}
 #dntm-auth2-dropdown.open{display:flex}
 #dntm-auth2-logout{padding:10px 14px;border:none;background:transparent;color:#fca5a5;font-size:13px;font-weight:700;cursor:pointer;text-align:left}
@@ -10578,7 +10579,7 @@ function welcomeCta(){welcomeSeen();if(typeof renderHub==='function'){try{render
  var GAME_KEY='tacticalArenaRecruitmentV1';
  var GAME_BACKUP='tacticalArenaRecruitmentV1_backup';
  function nsKey(id){ return 'dntm_save_v1_'+id; }
- var client=null, uid=null, mode='login', syncTimer=null;
+ var client=null, uid=null, mode='login', syncTimer=null, accessToken=null;
  function $(id){ return document.getElementById(id); }
  function msg(t,ok){ var e=$('dntm-auth2-msg'); if(!e)return; e.textContent=t||''; e.className='dntm-auth2-msg'+(ok?' ok':''); }
  function friendly(e){
@@ -10696,15 +10697,33 @@ function welcomeCta(){welcomeSeen();if(typeof renderHub==='function'){try{render
     return;
    }
    uid=user.id;
+   try{ accessToken=res.data.session&&res.data.session.access_token; }catch(_){}
    $('dntm-auth2-email-label').textContent=user.email||'';
    await syncOnLogin(uid);
   }catch(e){ msg(friendly(e)); }
   finally{ btn.disabled=false; }
  }
- async function doLogout(){
-  try{ await uploadNow(); }catch(_){}
-  try{ if(client) await client.auth.signOut(); }catch(_){}
-  uid=null;
+ function doLogout(){
+  syncFreeze=true;
+  try{ if(window.saveRecruitmentState){ try{ window.saveRecruitmentState(); }catch(_){} } }catch(_){}
+  try{
+   var raw=localStorage.getItem(GAME_KEY);
+   if(raw&&uid&&accessToken){
+    var sv=JSON.parse(raw);
+    fetch(SUPABASE_URL+'/rest/v1/'+TABLE,{
+     method:'POST',keepalive:true,
+     headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+accessToken,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},
+     body:JSON.stringify({user_id:uid,save_data:sv,save_revision:Number(sv.save_revision)||0,updated_at:new Date().toISOString()})
+    });
+   }
+  }catch(_){}
+  try{
+   for(var i=localStorage.length-1;i>=0;i--){
+    var k=localStorage.key(i);
+    if(k&&k.indexOf('sb-')===0&&k.indexOf('-auth-token')>0){ localStorage.removeItem(k); }
+   }
+  }catch(_){}
+  uid=null; accessToken=null;
   location.reload();
  }
  function setMode(m){
@@ -10741,6 +10760,7 @@ function welcomeCta(){welcomeSeen();if(typeof renderHub==='function'){try{render
    var s=res&&res.data&&res.data.session;
    if(s&&s.user){
     uid=s.user.id;
+    try{ accessToken=s.access_token; }catch(_){}
     $('dntm-auth2-email-label').textContent=s.user.email||'';
     try{ await syncOnLogin(uid); }catch(e){ msg(friendly(e)); }
    }
@@ -10749,6 +10769,417 @@ function welcomeCta(){welcomeSeen();if(typeof renderHub==='function'){try{render
  }
  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
  else init();
+})();
+</script>
+
+<script id="dntm-tower-script">
+/* THÁP TU LUYỆN — Tower of Cultivation */
+(function(){
+"use strict";
+// Cấu hình tầng
+const TOWER_FLOORS=[
+ {id:1,name:'Nhập Môn',timeMin:15,mult:1.5,fee:10,stoneTier:1,stonePerHour:10},
+ {id:2,name:'Linh Tụ',timeMin:30,mult:2.5,fee:25,stoneTier:1,stonePerHour:20},
+ {id:3,name:'Huyền Quang',timeMin:60,mult:4,fee:50,stoneTier:2,stonePerHour:15,guardian:true},
+ {id:4,name:'Địa Mạch',timeMin:90,mult:6,fee:100,stoneTier:2,stonePerHour:30,guardian:true},
+ {id:5,name:'Thiên Cơ',timeMin:120,mult:10,fee:200,stoneTier:3,stonePerHour:20,guardian:true},
+ {id:6,name:'Hỗn Độn',timeMin:180,mult:15,fee:500,stoneTier:3,stonePerHour:50,hidden:true,guardian:true},
+];
+const TOWER_MAX_DAILY=2;
+const TOWER_FLOOR5_FOR_UNLOCK6=10;
+
+function towerFloor(id){ return TOWER_FLOORS.find(f=>f.id===id); }
+function todayKey(){ const d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
+
+// Giờ linh khí dồi dào: 12h-13h và 20h-21h
+function isTowerHappyHour(){
+ try{
+  const h=new Date().getHours();
+  return (h>=12&&h<13)||(h>=20&&h<21);
+ }catch(_){ return false; }
+}
+
+// Số lượt vào hôm nay của đệ tử
+function towerEntriesToday(d){
+ try{
+  const t=todayKey();
+  if(!d.towerDaily||d.towerDaily.date!==t){ d.towerDaily={date:t,count:0}; }
+  return d.towerDaily.count;
+ }catch(_){ return 0; }
+}
+function towerIncEntry(d){
+ const t=todayKey();
+ if(!d.towerDaily||d.towerDaily.date!==t){ d.towerDaily={date:t,count:0}; }
+ d.towerDaily.count++;
+}
+
+// Kiểm tra tầng đã mở khóa guardian chưa (per disciple)
+function towerGuardianUnlocked(d,floorId){
+ if(floorId<3) return true;
+ try{ return !!(d.towerGuardian&&(d.towerGuardian[floorId]===true)); }catch(_){ return false; }
+}
+function towerSetGuardianUnlocked(d,floorId){
+ if(!d.towerGuardian) d.towerGuardian={};
+ d.towerGuardian[floorId]=true;
+}
+
+// Tầng 6: cần 10 lần hoàn thành tầng 5
+function towerFloor6Unlocked(d){
+ try{ return (Number(d.towerFloor5Count)||0)>=TOWER_FLOOR5_FOR_UNLOCK6; }catch(_){ return false; }
+}
+
+// Vào tháp
+function towerEnter(discipleIds,floorId){
+ const floor=towerFloor(floorId);
+ if(!floor) return {ok:false,msg:'Tầng không tồn tại.'};
+ const results=[];
+ for(const did of discipleIds){
+  const d=(typeof DISCIPLES!=='undefined')?DISCIPLES.find(x=>x.id===did):null;
+  if(!d){ results.push({id:did,ok:false,msg:'Không tìm thấy đệ tử.'}); continue; }
+  if(d.towerSession){ results.push({id:did,ok:false,msg:d.name+' đang trong tháp rồi.'}); continue; }
+  if(d.status==='exploring'){ results.push({id:did,ok:false,msg:d.name+' đang đi bí cảnh.'}); continue; }
+  if(d.status==='injured'){ results.push({id:did,ok:false,msg:d.name+' đang bị thương.'}); continue; }
+  if(towerEntriesToday(d)>=TOWER_MAX_DAILY){ results.push({id:did,ok:false,msg:d.name+' đã hết lượt hôm nay.'}); continue; }
+  if(floor.hidden&&!towerFloor6Unlocked(d)){ results.push({id:did,ok:false,msg:d.name+' chưa mở tầng 6.'}); continue; }
+  if(floor.guardian&&!towerGuardianUnlocked(d,floorId)){ results.push({id:did,ok:false,msg:d.name+' chưa vượt thử thách tầng '+floorId+'.',needGuardian:true}); continue; }
+  const contrib=Number(d.contribution)||0;
+  if(contrib<floor.fee){ results.push({id:did,ok:false,msg:d.name+' thiếu cống hiến (cần '+floor.fee+').'}); continue; }
+  // Trừ phí
+  d.contribution=contrib-floor.fee;
+  towerIncEntry(d);
+  const now=Date.now();
+  d.towerSession={floor:floorId,startTime:now,endTime:now+floor.timeMin*60000};
+  d.status='tower';
+  d._towerEventMult=1;
+  d._towerEventUntil=0;
+  results.push({id:did,ok:true});
+ }
+ try{ if(typeof saveRecruitmentState==='function') saveRecruitmentState(); }catch(_){}
+ return {ok:true,results:results};
+}
+
+// Ra tháp
+function towerExit(d,reason){
+ if(!d||!d.towerSession) return;
+ const floor=towerFloor(d.towerSession.floor);
+ // Đếm hoàn thành tầng 5
+ if(floor&&floor.id===5&&reason==='done'){
+  d.towerFloor5Count=(Number(d.towerFloor5Count)||0)+1;
+ }
+ d.towerSession=null;
+ d.status='training';
+ d._towerEventMult=1;
+ d._towerEventUntil=0;
+ try{ if(typeof saveRecruitmentState==='function') saveRecruitmentState(); }catch(_){}
+}
+
+// Tu luyện trong tháp (được gọi từ progressDisciple)
+window.applyTowerCultivation=function(d,elapsedSeconds){
+ if(!d||!d.towerSession) return 0;
+ const session=d.towerSession;
+ const floor=towerFloor(session.floor);
+ if(!floor){ towerExit(d,'error'); return 0; }
+ // Hết giờ?
+ if(Date.now()>=session.endTime){ towerExit(d,'done'); return 0; }
+ try{ if(typeof ensureCultivationData==='function') ensureCultivationData(d); }catch(_){}
+ // Hệ số
+ const happyMult=isTowerHappyHour()?2:1;
+ let eventMult=1;
+ try{
+  if(d._towerEventUntil&&Date.now()<d._towerEventUntil){ eventMult=Number(d._towerEventMult)||1; }
+  else{ d._towerEventMult=1; d._towerEventUntil=0; }
+ }catch(_){}
+ const baseRate=(typeof baseCultivationRatePerHour==='function')?baseCultivationRatePerHour(d):60;
+ const skillMult=(typeof cultivationSpeedMultiplier==='function')?cultivationSpeedMultiplier(d):1;
+ // Đá: đốt theo tốc độ tầng, hết đá vẫn giữ buff tầng
+ const tier=floor.stoneTier;
+ let stoneBonus=0;
+ try{
+  const avail=Math.max(0,Number(d.spiritStones&&d.spiritStones[tier])||0);
+  if(avail>0&&typeof SPIRIT_STONE_VALUES!=='undefined'){
+   const needPerSec=floor.stonePerHour/3600;
+   const need=needPerSec*elapsedSeconds;
+   const used=Math.min(avail,need);
+   d.spiritStones[tier]=avail-used;
+   const coverage=need>0?used/need:0;
+   stoneBonus=SPIRIT_STONE_VALUES[tier]*skillMult*coverage;
+  }
+ }catch(_){}
+ const gained=(baseRate*floor.mult*skillMult*happyMult*eventMult+stoneBonus)*elapsedSeconds/3600;
+ if(gained>0){
+  try{
+   if(typeof addLinhLuc==='function') addLinhLuc(d,gained,false);
+   else d.linhLuc=(Number(d.linhLuc)||0)+gained;
+  }catch(_){}
+ }
+ // Sự kiện ngẫu nhiên
+ towerMaybeEvent(d);
+ return gained;
+};
+
+// Sự kiện ngẫu nhiên trong tháp (mỗi tick 5s có tỷ lệ nhỏ)
+function towerMaybeEvent(d){
+ try{
+  if(d._towerEventUntil&&Date.now()<d._towerEventUntil) return; // đang có event
+  const roll=Math.random();
+  if(roll<0.02){ // 2%: linh khí bạo động x2 trong 5 phút
+   d._towerEventMult=2; d._towerEventUntil=Date.now()+5*60000;
+   towerNotify(d,'Linh khí bạo động! Tốc độ tu luyện x2 trong 5 phút.');
+  }else if(roll<0.03){ // 1%: đốn ngộ +50
+   if(typeof addLinhLuc==='function') addLinhLuc(d,50,false);
+   towerNotify(d,'Đốn ngộ! +50 linh lực.');
+  }else if(roll<0.04){ // 1%: tâm ma
+   // Tốn 5 đá để hóa giải, không thì dừng 2 phút (mult=0)
+   const tier=d.towerSession?towerFloor(d.towerSession.floor).stoneTier:1;
+   const avail=Math.max(0,Number(d.spiritStones&&d.spiritStones[tier])||0);
+   if(avail>=5){
+    d.spiritStones[tier]=avail-5;
+    towerNotify(d,'Tâm ma xâm nhập! Tốn 5 linh thạch hóa giải.');
+   }else{
+    d._towerEventMult=0; d._towerEventUntil=Date.now()+2*60000;
+    towerNotify(d,'Tâm ma xâm nhập! Dừng tu luyện 2 phút.');
+   }
+  }
+ }catch(_){}
+}
+function towerNotify(d,text){
+ try{
+  if(typeof gameAlert==='function') gameAlert('<b>'+d.name+'</b><br>'+text);
+ }catch(_){}
+}
+
+// Expose
+window.TOWER_FLOORS=TOWER_FLOORS;
+window.towerEnter=towerEnter;
+window.towerExit=towerExit;
+window.towerEntriesToday=towerEntriesToday;
+window.towerGuardianUnlocked=towerGuardianUnlocked;
+window.towerSetGuardianUnlocked=towerSetGuardianUnlocked;
+window.towerFloor6Unlocked=towerFloor6Unlocked;
+window.isTowerHappyHour=isTowerHappyHour;
+window.TOWER_MAX_DAILY=TOWER_MAX_DAILY;
+})();
+</script>
+
+<style id="dntm-tower-styles">
+.tower-floors{display:flex;flex-direction:column;gap:12px;padding:12px}
+.tower-floor{border:1px solid rgba(212,175,55,.35);border-radius:14px;padding:14px;background:linear-gradient(165deg,rgba(30,24,12,.95),rgba(10,8,4,.95));cursor:pointer;transition:transform .15s}
+.tower-floor:hover{transform:translateY(-2px);border-color:rgba(251,191,36,.6)}
+.tower-floor.locked{opacity:.5;cursor:not-allowed}
+.tower-floor-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.tower-floor-name{font-size:16px;font-weight:900;color:#fcd34d}
+.tower-floor-mult{font-size:12px;color:#4ade80;font-weight:700}
+.tower-floor-info{font-size:12px;color:#94a3b8;line-height:1.6}
+.tower-floor-info b{color:#e2e8f0}
+.tower-disciples{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.tower-disciple{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:20px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);font-size:12px;color:#fcd34d}
+.tower-disciple .tower-timer{color:#94a3b8;font-size:11px}
+.tower-empty{font-size:12px;color:#64748b;font-style:italic;margin-top:8px}
+.tower-happy{margin:12px;padding:10px 14px;border-radius:12px;background:linear-gradient(135deg,rgba(245,158,11,.2),rgba(180,83,9,.1));border:1px solid rgba(251,191,36,.5);text-align:center;color:#fcd34d;font-size:13px;font-weight:700}
+.tower-select-modal{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(2,6,23,.85)}
+.tower-select-modal[hidden]{display:none!important}
+.tower-select-card{width:min(400px,100%);max-height:80vh;overflow-y:auto;border:1px solid rgba(212,175,55,.5);border-radius:16px;padding:20px;background:linear-gradient(165deg,rgba(30,24,12,.98),rgba(10,8,4,.98))}
+.tower-select-card h3{margin:0 0 12px;color:#fcd34d;font-size:17px}
+.tower-select-item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;border:1px solid rgba(100,116,139,.3);margin-bottom:8px;cursor:pointer}
+.tower-select-item.selected{border-color:#f59e0b;background:rgba(245,158,11,.12)}
+.tower-select-item.disabled{opacity:.4;cursor:not-allowed}
+.tower-select-item .avatar{width:40px;height:40px;border-radius:50%;background:#1e293b}
+.tower-select-item .info{flex:1}
+.tower-select-item .name{font-weight:700;color:#e2e8f0;font-size:14px}
+.tower-select-item .detail{font-size:11px;color:#94a3b8}
+.tower-select-actions{display:flex;gap:10px;margin-top:14px}
+.tower-select-actions button{flex:1;padding:11px;border-radius:10px;font-weight:900;cursor:pointer;font-size:14px}
+.tower-btn-confirm{border:none;background:linear-gradient(135deg,#f59e0b,#b45309);color:#1c1917}
+.tower-btn-cancel{border:1px solid rgba(100,116,139,.4);background:transparent;color:#94a3b8}
+</style>
+<div id="tower-tab-panel" class="hub-tab-panel" hidden>
+ <div id="tower-happy-banner"></div>
+ <div class="tower-floors" id="tower-floors"></div>
+</div>
+<div class="tower-select-modal" id="tower-select-modal" hidden>
+ <div class="tower-select-card">
+  <h3 id="tower-select-title">Chọn đệ tử vào tháp</h3>
+  <div id="tower-select-list"></div>
+  <div class="tower-select-actions">
+   <button type="button" class="tower-btn-cancel" id="tower-select-cancel">Hủy</button>
+   <button type="button" class="tower-btn-confirm" id="tower-select-confirm">Vào tháp</button>
+  </div>
+ </div>
+</div>
+
+<script id="dntm-tower-ui-script">
+/* Tower UI */
+(function(){
+"use strict";
+let towerSelectedFloor=null;
+let towerSelectedIds=new Set();
+
+function towerTimeLeft(session){
+ const ms=Math.max(0,session.endTime-Date.now());
+ const m=Math.floor(ms/60000), s=Math.floor((ms%60000)/1000);
+ return m+'p '+s+'s';
+}
+
+function renderTower(){
+ const wrap=document.getElementById('tower-floors');
+ if(!wrap) return;
+ // Happy hour banner
+ const banner=document.getElementById('tower-happy-banner');
+ if(banner){
+  if(window.isTowerHappyHour&&isTowerHappyHour()){
+   banner.innerHTML='<div class="tower-happy">🔥 Giờ linh khí dồi dào! Tốc độ tu luyện x2</div>';
+  }else banner.innerHTML='';
+ }
+ let html='';
+ const floors=window.TOWER_FLOORS||[];
+ for(const f of floors){
+  // Ẩn tầng 6 nếu chưa mở
+  let showFloor=true;
+  if(f.hidden){
+   showFloor=false;
+   try{
+    if(typeof DISCIPLES!=='undefined'){
+     showFloor=DISCIPLES.some(d=>window.towerFloor6Unlocked&&towerFloor6Unlocked(d));
+    }
+   }catch(_){}
+  }
+  if(!showFloor) continue;
+  // Đệ tử đang ở tầng này
+  let disciples=[];
+  try{
+   disciples=DISCIPLES.filter(d=>d.towerSession&&d.towerSession.floor===f.id);
+  }catch(_){}
+  const discHtml=disciples.length>0
+   ? disciples.map(d=>'<div class="tower-disciple">🧘 '+escapeHtml(d.name)+'<span class="tower-timer">'+towerTimeLeft(d.towerSession)+'</span></div>').join('')
+   : '<div class="tower-empty">Chưa có ai đang tu luyện</div>';
+  const guardian=f.guardian?'<br>⚔️ Cần vượt thử thách (lần đầu)':'';
+  const hiddenTag=f.hidden?' · <b style="color:#c084fc">Tầng ẩn</b>':'';
+  html+='<div class="tower-floor" data-floor="'+f.id+'">'
+   +'<div class="tower-floor-head"><span class="tower-floor-name">Tầng '+f.id+' · '+f.name+hiddenTag+'</span><span class="tower-floor-mult">x'+f.mult+' tốc độ</span></div>'
+   +'<div class="tower-floor-info">⏱️ '+f.timeMin+' phút · 🎫 <b>'+f.fee+'</b> cống hiến/lượt · 💎 '+f.stonePerHour+' đá '+['','hạ','trung','thượng'][f.stoneTier]+'/giờ'+guardian+'</div>'
+   +'<div class="tower-disciples">'+discHtml+'</div>'
+   +'</div>';
+ }
+ wrap.innerHTML=html;
+ // Click handlers
+ wrap.querySelectorAll('.tower-floor').forEach(el=>{
+  el.addEventListener('click',()=>openTowerSelect(Number(el.dataset.floor)));
+ });
+}
+
+function openTowerSelect(floorId){
+ towerSelectedFloor=floorId;
+ towerSelectedIds=new Set();
+ const floor=(window.TOWER_FLOORS||[]).find(f=>f.id===floorId);
+ document.getElementById('tower-select-title').textContent='Tầng '+floorId+' · '+floor.name+' — Chọn đệ tử';
+ renderTowerSelectList();
+ document.getElementById('tower-select-modal').hidden=false;
+}
+
+function renderTowerSelectList(){
+ const list=document.getElementById('tower-select-list');
+ const floor=(window.TOWER_FLOORS||[]).find(f=>f.id===towerSelectedFloor);
+ let html='';
+ for(const d of DISCIPLES){
+  let disabled='', reason='';
+  if(d.towerSession){ disabled='disabled'; reason='Đang trong tháp'; }
+  else if(d.status==='exploring'){ disabled='disabled'; reason='Đang đi bí cảnh'; }
+  else if(d.status==='injured'){ disabled='disabled'; reason='Bị thương'; }
+  else if((Number(d.contribution)||0)<floor.fee){ disabled='disabled'; reason='Thiếu cống hiến'; }
+  else{
+   const entries=(window.towerEntriesToday? towerEntriesToday(d):0);
+   if(entries>=(window.TOWER_MAX_DAILY||2)){ disabled='disabled'; reason='Hết lượt hôm nay'; }
+  }
+  // Guardian check
+  let needGuardian=false;
+  if(!disabled&&floor.guardian&&window.towerGuardianUnlocked&&!towerGuardianUnlocked(d,floor.id)){
+   needGuardian=true;
+  }
+  const sel=towerSelectedIds.has(d.id)?'selected':'';
+  html+='<div class="tower-select-item '+sel+' '+disabled+'" data-id="'+d.id+'">'
+   +'<div class="info"><div class="name">'+escapeHtml(d.name)+' <span style="color:#94a3b8">Lv.'+d.level+'</span></div>'
+   +'<div class="detail">'+(reason||('Cống hiến: '+(Number(d.contribution)||0)+(needGuardian?' · ⚔️ Cần thử thách':'')))+'</div></div>'
+   +'</div>';
+ }
+ list.innerHTML=html||'<div class="tower-empty">Không có đệ tử</div>';
+ list.querySelectorAll('.tower-select-item:not(.disabled)').forEach(el=>{
+  el.addEventListener('click',()=>{
+   const id=el.dataset.id;
+   if(towerSelectedIds.has(id)) towerSelectedIds.delete(id);
+   else towerSelectedIds.add(id);
+   el.classList.toggle('selected');
+  });
+ });
+}
+
+function closeTowerSelect(){
+ document.getElementById('tower-select-modal').hidden=true;
+}
+
+async function confirmTowerEnter(){
+ const ids=Array.from(towerSelectedIds);
+ if(ids.length===0){ return; }
+ const floor=(window.TOWER_FLOORS||[]).find(f=>f.id===towerSelectedFloor);
+ // Kiểm tra guardian trước
+ const needGuardian=[];
+ for(const id of ids){
+  const d=DISCIPLES.find(x=>x.id===id);
+  if(d&&floor.guardian&&window.towerGuardianUnlocked&&!towerGuardianUnlocked(d,floor.id)){
+   needGuardian.push(d);
+  }
+ }
+ if(needGuardian.length>0){
+  // TODO: Guardian battle - tạm thời auto-pass để test
+  // Sau này thay bằng trận đánh thật
+  if(typeof gameConfirm==='function'){
+   gameConfirm('Đệ tử <b>'+needGuardian.map(d=>escapeHtml(d.name)).join(', ')+'</b> cần vượt thử thách thủ hộ tầng '+floor.id+' (lần đầu).<br><br>Bắt đầu thử thách?',function(){
+    needGuardian.forEach(d=>{ if(window.towerSetGuardianUnlocked) towerSetGuardianUnlocked(d,floor.id); });
+    doTowerEnter(ids);
+   });
+  }else{
+   needGuardian.forEach(d=>{ if(window.towerSetGuardianUnlocked) towerSetGuardianUnlocked(d,floor.id); });
+   doTowerEnter(ids);
+  }
+  return;
+ }
+ doTowerEnter(ids);
+}
+
+function doTowerEnter(ids){
+ const res=window.towerEnter(ids,towerSelectedFloor);
+ closeTowerSelect();
+ let okCount=0, msgs=[];
+ if(res&&res.results){
+  for(const r of res.results){
+   if(r.ok) okCount++;
+   else if(r.msg) msgs.push(r.msg);
+  }
+ }
+ if(msgs.length>0&&typeof gameAlert==='function'){
+  gameAlert(msgs.join('<br>'));
+ }else if(okCount>0&&typeof gameAlert==='function'){
+  gameAlert('Đã đưa '+okCount+' đệ tử vào tháp tu luyện!');
+ }
+ renderTower();
+}
+
+// Auto-refresh timer
+setInterval(()=>{
+ const panel=document.getElementById('tower-tab-panel');
+ if(panel&&!panel.hidden){ renderTower(); }
+},10000);
+
+document.addEventListener('DOMContentLoaded',()=>{
+ const cancel=document.getElementById('tower-select-cancel');
+ if(cancel) cancel.addEventListener('click',closeTowerSelect);
+ const confirm=document.getElementById('tower-select-confirm');
+ if(confirm) confirm.addEventListener('click',confirmTowerEnter);
+ // Đóng modal khi bấm ngoài
+ const modal=document.getElementById('tower-select-modal');
+ if(modal) modal.addEventListener('click',e=>{ if(e.target===modal) closeTowerSelect(); });
+});
+
+window.renderTower=renderTower;
 })();
 </script>
 
