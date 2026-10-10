@@ -1573,7 +1573,7 @@ img:not([data-no-glow]):hover{filter:drop-shadow(0 0 5px rgba(56,189,248,.28)) s
     <div class="header-icon"><i class="fa-solid fa-fire-flame-curved"></i></div>
     <h1 class="header-title">ĐỆ NHẤT TÔNG MÔN</h1>
   </div>
-  <div class="header-res">
+  <div class="header-res"><span id="dntm-auth2-email-label" title="Bấm để xem tùy chọn" style="display:none"></span>
     <button type="button" class="res-contribution" title="Tổng điểm cống hiến"><i class="fa-solid fa-medal"></i> <b id="resource-contribution">0</b></button>
   </div>
 </header>
@@ -10534,15 +10534,15 @@ function welcomeCta(){welcomeSeen();if(typeof renderHub==='function'){try{render
 .dntm-auth2-card button.submit:disabled{opacity:.5}
 .dntm-auth2-msg{min-height:20px;margin-top:10px;text-align:center;font-size:13px;color:#f87171}
 .dntm-auth2-msg.ok{color:#4ade80}
-.dntm-auth2-userbar{position:fixed;top:2px;right:8px;z-index:9600;display:flex;align-items:center;max-width:calc(100vw - 16px)}
-.dntm-auth2-userbar[hidden]{display:none!important}
-#dntm-auth2-email-label{color:#78716c;font-size:11px;font-weight:500;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;padding:4px 6px;user-select:none;background:none;border:none}
+
+
+#dntm-auth2-email-label{color:#78716c;font-size:11px;font-weight:500;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;padding:4px 6px;user-select:none;background:none;border:none;display:inline-block;vertical-align:middle}
 #dntm-auth2-email-label:hover{color:#a8a29e}
 #dntm-auth2-dropdown{position:fixed;z-index:9500;display:none;flex-direction:column;min-width:130px;border:1px solid rgba(212,175,55,.5);border-radius:12px;background:rgba(10,8,4,.98);box-shadow:0 8px 24px rgba(0,0,0,.5);overflow:hidden}
 #dntm-auth2-dropdown.open{display:flex}
 #dntm-auth2-logout{padding:10px 14px;border:none;background:transparent;color:#fca5a5;font-size:13px;font-weight:700;cursor:pointer;text-align:left}
 #dntm-auth2-logout:hover{background:rgba(127,29,29,.4)}
-.dntm-auth2-userbar button{padding:7px 14px;border-radius:20px;border:1px solid rgba(212,175,55,.5);background:rgba(20,16,8,.9);color:#fcd34d;font-size:12px;font-weight:700;cursor:pointer}
+
 </style>
 
 
@@ -10560,9 +10560,7 @@ function welcomeCta(){welcomeSeen();if(typeof renderHub==='function'){try{render
   <div class="dntm-auth2-msg" id="dntm-auth2-msg"></div>
  </div>
 </div>
-<div class="dntm-auth2-userbar" id="dntm-auth2-userbar" hidden>
- <span id="dntm-auth2-email-label" title="Bấm để xem tùy chọn"></span>
-</div>
+
 <div id="dntm-auth2-dropdown">
  <button type="button" id="dntm-auth2-logout">Đăng xuất</button>
 </div>
@@ -10632,7 +10630,7 @@ function welcomeCta(){welcomeSeen();if(typeof renderHub==='function'){try{render
   if(alreadyReloaded){
    try{ sessionStorage.removeItem('dntm_auth2_reloaded'); }catch(_){}
    $('dntm-auth2-gate').hidden=true;
-   $('dntm-auth2-userbar').hidden=false;
+   var _lbl2=$('dntm-auth2-email-label'); if(_lbl2) _lbl2.style.display='inline-block';
    msg('',true);
    return;
   }
@@ -10643,7 +10641,7 @@ function welcomeCta(){welcomeSeen();if(typeof renderHub==='function'){try{render
    return;
   }
   $('dntm-auth2-gate').hidden=true;
-  $('dntm-auth2-userbar').hidden=false;
+  var _lbl=$('dntm-auth2-email-label'); if(_lbl) _lbl.style.display='inline-block';
   msg('',true);
  }
  function scheduleUpload(){
